@@ -16,7 +16,7 @@ class Conv():
         w: 4D (filters, ic, w, h)
         b: 1D (filters)
         """
-        self.w = np.random.randn(self.filters, self.input_channels, self.kernel, self.kernel) / np.sqrt(self.input_channels * self.kernel * self.kernel)
+        self.w = np.random.randn(self.filters, self.input_channels, self.kernel, self.kernel) / np.sqrt(self.input_channels)
         # self.w = np.ones((self.filters, self.input_channels, self.kernel, self.kernel))
         for i in range(self.filters):
             for j in range(self.input_channels):
@@ -29,7 +29,7 @@ class Conv():
         output: 2D (w, h)
         """
         dim = np.subtract(x[0].shape, w[0].shape) + 1
-        if not mapping: mapping = np.ones(x.shape[0])
+        if mapping is None: mapping = np.ones(x.shape[0])
         a = np.zeros(dim)
         for i in range(dim[0]):
             for j in range(dim[1]):
@@ -45,35 +45,36 @@ class Conv():
         self.x = x
         a = []
         for i in range(self.filters):
-            z = self.conv(x, self.w[i], self.feature_mapping[i]) + self.b[i]
+            self.z = self.conv(x, self.w[i], self.feature_mapping[i]) + self.b[i]
             if self.activation == 'relu':
-                a.append(np.maximum(0, z))
+                a.append(np.maximum(0, self.z))
             else:
-                a.append(z)
-        a = np.array(a)
-        return a
+                a.append(self.z)
+        self.a = np.array(a)
+        return self.a
 
     def backward(self, delta, eta):
         """
         delta: 3D (filters, w, h)
         output: 3D (input_channel, w, h)
         """
+        if self.activation == 'relu':
+            delta = delta * (self.z >= 0)
+        d = np.pad(delta, ((0,),(self.kernel-1,),(self.kernel-1,)), mode='constant', constant_values=0)
         ds = []
-        ws = self.w.reshape(self.input_channels, self.filters, self.kernel, self.kernel)
         for i in range(self.input_channels):
-            w = np.array([np.rot90(np.rot90(ws[i][j])) for j in range(self.filters)])
-            d = np.pad(delta, ((0,),(self.kernel-1,),(self.kernel-1,)), mode='constant', constant_values=0)
+            w = np.array([np.rot90(np.rot90(self.w[j][i])) for j in range(self.filters)])
             ds.append(self.conv(d, w))
         ds = np.array(ds)
 
         for i in range(self.filters):
             d = np.array([delta[i]])
-            dw = self.conv(self.x, d, self.feature_mapping[i])
-            db = np.sum(d)
-            self.w[i] -= eta * dw
-            self.b[i] -= eta * db
+            self.b[i] -= eta * np.sum(d)
             for j in range(self.input_channels):
-                if not self.feature_mapping[i][j]: self.w[i][j] = 0
+                if not self.feature_mapping[i][j]: continue
+                x = np.array([self.x[j]])
+                dw = self.conv(x, d, self.feature_mapping[i][j])
+                self.w[i][j] -= eta * dw
 
         return ds
 
@@ -83,11 +84,13 @@ if __name__ == '__main__':
         [[1,1,1,0,0,0],
          [0,1,1,1,0,0],
          [0,0,1,1,1,0]])
-    x = np.ones((6, 32, 32))
+    x = np.ones((6, 6, 6)) / 27
     y = conv.forward(x)
     y1 = y.copy() + 1
     print('###### y {} ######'.format(y.shape))
-    # print(y)
+    print(y)
     ds = conv.backward(y1-y, 0.1)
-    print('###### delta {} ######'.format(delta.shape))
-    # print(ds)
+    print('###### delta {} ######'.format(ds.shape))
+    print(ds)
+    print('###### w {} ######'.format(conv.w.shape))
+    print(conv.w)

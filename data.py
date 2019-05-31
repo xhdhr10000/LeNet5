@@ -39,7 +39,7 @@ def read_dataset(filename):
 def vectorize(num, classes):
     return [1 if i == num else 0 for i in range(classes)]
 
-def load_mnist(train_percent=0.8):
+def load_mnist(train_percent=0.99):
     check_dataset()
     train_input,_ = read_dataset('dataset/train-images-idx3-ubyte')
     train_label,_ = read_dataset('dataset/train-labels-idx1-ubyte')
