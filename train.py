@@ -4,7 +4,7 @@ from loss import MSE, LogLikelihood
 from lenet5 import LeNet5
 from data import load_mnist
 
-epochs = 30
+epochs = 3
 shuffle = True
 lr = 0.001
 
@@ -25,7 +25,7 @@ def main():
             print('Epoch %d step %d loss %f' % (epoch, step, loss))
             d = net.backward(dloss, lr)
 
-            if step % 100 == 0:
+            if step > 0 and step % 1000 == 0:
                 correct = 0
                 loss = 0
                 for i in range(len(val_input)):
@@ -34,7 +34,7 @@ def main():
                     y = net.forward(x)
                     loss += LogLikelihood.loss(y_true, y)
                     if np.argmax(y) == np.argmax(y_true): correct += 1
-                print('Validation accuracy: %.2f%, average loss: %f' % (correct/len(val_input)*100, loss/len(val_input)))
+                print('Validation accuracy: %.2f%%, average loss: %f' % (correct/len(val_input)*100, loss/len(val_input)))
 
 if __name__ == '__main__':
     main()

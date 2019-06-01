@@ -12,8 +12,7 @@ class LeNet5():
         self.input_size = input_size
         self.c1 = Conv(input_size[0], 6)
         self.s2 = Pool(6)
-        self.c3 = Conv(6, 16)
-        ''', feature_mapping=[
+        self.c3 = Conv(6, 16, feature_mapping=[
             [1,1,1,0,0,0],
             [0,1,1,1,0,0],
             [0,0,1,1,1,0],
@@ -31,7 +30,6 @@ class LeNet5():
             [1,0,1,1,0,1],
             [1,1,1,1,1,1]
         ])
-        '''
         self.s4 = Pool(16)
         self.c5 = FullyConnect((16,4,4), 120)
         self.f6 = FullyConnect(120, 84)

@@ -22,7 +22,7 @@ def read_dataset(filename):
         width, = unpack(">L", f.read(4))
         height, = unpack(">L", f.read(4))
         print("  Image size: [%d, %d]" % (width, height))
-        for i in range(0, 1000):#count):
+        for i in range(0, count):
             print("  Reading image: %d / %d" % (i+1, count), end="\r")
             array = [unpack("B", f.read(1))[0] for j in range(0, width*height)]
             array = np.ubyte([array[j::28] for j in range(0, 28)])
